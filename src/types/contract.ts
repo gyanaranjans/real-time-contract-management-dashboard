@@ -7,5 +7,6 @@ export interface Contract {
     startDate: string;
     endDate: string;
     status: "draft" | "active" | "pending" | "expired";
-    description?: string;
 }
+
+export type NewContractData = Omit<Contract, 'id'>;

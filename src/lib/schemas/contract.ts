@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 export const contractSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     clientName: z.string().min(1, "Client name is required"),
     value: z.number().min(0, "Value must be positive"),
     startDate: z.string(),

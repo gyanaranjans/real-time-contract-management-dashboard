@@ -1,7 +1,7 @@
 "use client";
 
 import { useContractStore } from "@/lib/store/contracts";
-import { Contract } from "@/types/contract";
+import { Contract, NewContractData } from "@/types/contract";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -28,10 +28,9 @@ export function ContractModal({
   isOpen,
   onClose,
 }: ContractModalProps) {
-  const { addContract, updateContract, getNextId } = useContractStore();
+  const { addContract, updateContract } = useContractStore();
 
   const defaultValues = contract || {
-    id: getNextId(),
     status: "draft",
     value: 0,
     startDate: new Date().toISOString().split("T")[0],
@@ -49,17 +48,33 @@ export function ContractModal({
     resolver: zodResolver(contractSchema),
     defaultValues,
   });
+  if (Object.keys(errors).length > 0) {
+    console.log("Form validation errors:", errors);
+  }
 
-  const onSubmit = (data: ContractFormData) => {
-    if (contract) {
-      updateContract(data as Contract);
-    } else {
-      addContract({
-        ...data,
-        id: getNextId(),
-      } as Contract);
+  const onSubmit = async (data: ContractFormData) => {
+    console.log("Form submitted:", data);
+
+    try {
+      if (contract) {
+        await updateContract({
+          ...contract,
+          ...data,
+        });
+      } else {
+        const newContract: NewContractData = {
+          clientName: data.clientName,
+          value: data.value,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          status: data.status,
+        };
+        await addContract(newContract);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
-    onClose();
   };
 
   if (!isOpen) return null;
