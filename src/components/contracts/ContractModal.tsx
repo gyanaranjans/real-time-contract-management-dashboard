@@ -2,7 +2,6 @@
 
 import { useContractStore } from "@/lib/store/contracts";
 import { Contract } from "@/types/contract";
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { createPortal } from "react-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { contractSchema, ContractFormData } from "@/lib/schemas/contract";
 
 interface ContractModalProps {
   contract?: Contract;
@@ -21,31 +23,39 @@ interface ContractModalProps {
   onClose: () => void;
 }
 
-// let contractCounter = 1000;
-
 export function ContractModal({
   contract,
   isOpen,
   onClose,
 }: ContractModalProps) {
   const { addContract, updateContract, getNextId } = useContractStore();
-  const [formData, setFormData] = useState<Partial<Contract>>(
-    contract || {
-      id: getNextId(),
-      status: "draft",
-      value: 0,
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(Date.now() + 31536000000).toISOString().split("T")[0],
-    }
-  );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const defaultValues = contract || {
+    id: getNextId(),
+    status: "draft",
+    value: 0,
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date(Date.now() + 31536000000).toISOString().split("T")[0],
+    clientName: "",
+  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<ContractFormData>({
+    resolver: zodResolver(contractSchema),
+    defaultValues,
+  });
+
+  const onSubmit = (data: ContractFormData) => {
     if (contract) {
-      updateContract(formData as Contract);
+      updateContract(data as Contract);
     } else {
       addContract({
-        ...formData,
+        ...data,
         id: getNextId(),
       } as Contract);
     }
@@ -62,67 +72,70 @@ export function ContractModal({
           <h2 className="text-lg font-semibold mb-4">
             {contract ? "Edit Contract" : "Create New Contract"}
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Client Name</label>
-              <Input
-                value={formData.clientName || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, clientName: e.target.value })
-                }
-                required
-              />
+              <Input {...register("clientName")} />
+              {errors.clientName && (
+                <p className="text-sm text-red-500">
+                  {errors.clientName.message}
+                </p>
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">Value ($)</label>
               <Input
                 type="number"
-                value={formData.value || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, value: Number(e.target.value) })
-                }
-                required
+                {...register("value", { valueAsNumber: true })}
               />
+              {errors.value && (
+                <p className="text-sm text-red-500">{errors.value.message}</p>
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">Start Date</label>
               <DatePicker
                 date={
-                  formData.startDate ? new Date(formData.startDate) : undefined
+                  watch("startDate") ? new Date(watch("startDate")) : undefined
                 }
                 onSelect={(date) =>
-                  setFormData({
-                    ...formData,
-                    startDate: date
-                      ? date.toISOString().split("T")[0]
-                      : undefined,
-                  })
+                  setValue(
+                    "startDate",
+                    date ? date.toISOString().split("T")[0] : ""
+                  )
                 }
               />
+              {errors.startDate && (
+                <p className="text-sm text-red-500">
+                  {errors.startDate.message}
+                </p>
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">End Date</label>
               <DatePicker
-                date={formData.endDate ? new Date(formData.endDate) : undefined}
+                date={watch("endDate") ? new Date(watch("endDate")) : undefined}
                 onSelect={(date) =>
-                  setFormData({
-                    ...formData,
-                    endDate: date
-                      ? date.toISOString().split("T")[0]
-                      : undefined,
-                  })
+                  setValue(
+                    "endDate",
+                    date ? date.toISOString().split("T")[0] : ""
+                  )
                 }
               />
+              {errors.endDate && (
+                <p className="text-sm text-red-500">{errors.endDate.message}</p>
+              )}
             </div>
+
             <div>
               <label className="text-sm font-medium">Status</label>
               <Select
-                value={formData.status}
+                value={watch("status")}
                 onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    status: value as Contract["status"],
-                  })
+                  setValue("status", value as Contract["status"])
                 }
               >
                 <SelectTrigger>
@@ -135,7 +148,11 @@ export function ContractModal({
                   <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.status && (
+                <p className="text-sm text-red-500">{errors.status.message}</p>
+              )}
             </div>
+
             <div className="flex gap-4">
               <Button type="submit">Save</Button>
               <Button type="button" variant="outline" onClick={onClose}>

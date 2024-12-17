@@ -18,6 +18,18 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ date, onSelect }: DatePickerProps) {
+  const handleSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      const day = selectedDate.getDate();
+      const adjustedDate = new Date(year, month, day, 12);
+      onSelect(adjustedDate);
+    } else {
+      onSelect(undefined);
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -36,7 +48,7 @@ export function DatePicker({ date, onSelect }: DatePickerProps) {
         <Calendar
           mode="single"
           selected={date}
-          onSelect={onSelect}
+          onSelect={handleSelect}
           initialFocus
         />
       </PopoverContent>
