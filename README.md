@@ -1,6 +1,21 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Contract Management Dashboard
 
-## Getting Started
+## Prerequisites
+
+- Node.js
+- Bun (Required for WebSocket server)
+
+## Setup
+
+1. Install Bun:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+# or on Windows using PowerShell
+powershell -c "iwr bun.sh/install.ps1|iex"
+```
+
+# Getting Started
 
 First, run the development server:
 
@@ -14,9 +29,10 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will concurrently start:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Next.js dev server will start at `http://localhost:3000`
+- WebSocket server will start at `http://localhost:8000`
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

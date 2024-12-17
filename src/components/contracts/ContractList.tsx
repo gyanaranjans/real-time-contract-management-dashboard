@@ -5,7 +5,6 @@ import { ContractRow } from "./ContractRow";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
